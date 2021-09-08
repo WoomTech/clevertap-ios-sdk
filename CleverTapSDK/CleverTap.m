@@ -1566,47 +1566,10 @@ static NSMutableArray<CTInAppDisplayViewController*> *pendingNotificationControl
 }
 
 - (void)_checkAndFireDeepLinkForNotification:(NSDictionary *)notification {
-    UIApplication *application = [[self class] getSharedApplication];
-    if (application != nil) {
-        @try {
-            NSString *dl = (NSString *) notification[@"wzrk_dl"];
-            if (dl) {
-                __block NSURL *dlURL = [NSURL URLWithString:dl];
-                if (dlURL) {
-                    [[self class] runSyncMainQueue:^{
-                        CleverTapLogDebug(self.config.logLevel, @"%@: Firing deep link: %@", self, dl);
-                        if (@available(iOS 10.0, *)) {
-                            if ([application respondsToSelector:@selector(openURL:options:completionHandler:)]) {
-                                NSMethodSignature *signature = [UIApplication
-                                                                instanceMethodSignatureForSelector:@selector(openURL:options:completionHandler:)];
-                                NSInvocation *invocation = [NSInvocation
-                                                            invocationWithMethodSignature:signature];
-                                [invocation setTarget:application];
-                                [invocation setSelector:@selector(openURL:options:completionHandler:)];
-                                NSDictionary *options = @{};
-                                id completionHandler = nil;
-                                [invocation setArgument:&dlURL atIndex:2];
-                                [invocation setArgument:&options atIndex:3];
-                                [invocation setArgument:&completionHandler atIndex:4];
-                                [invocation invoke];
-                            } else {
-                                if ([application respondsToSelector:@selector(openURL:)]) {
-                                    [application performSelector:@selector(openURL:) withObject:dlURL];
-                                }
-                            }
-                        } else {
-                            if ([application respondsToSelector:@selector(openURL:)]) {
-                                [application performSelector:@selector(openURL:) withObject:dlURL];
-                            }
-                        }
-                    }];
-                }
-            }
-        }
-        @catch (NSException *exception) {
-            CleverTapLogDebug(self.config.logLevel, @"%@: Unable to fire deep link: %@", self, [exception reason]);
-        }
-    }
+    NSString *dl = (NSString *) notification[@"wzrk_dl"];
+    NSURL *dlURL = [NSURL URLWithString:dl];
+    NSDictionary *info = @{@"url": dlURL};
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"CapacitorOpenUniversalLinkNotification" object:info userInfo:nil];
 }
 
 - (void)_pushDeepLink:(NSString *)uri withSourceApp:(NSString *)sourceApp andInstall:(BOOL)install {
