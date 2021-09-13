@@ -1567,9 +1567,11 @@ static NSMutableArray<CTInAppDisplayViewController*> *pendingNotificationControl
 
 - (void)_checkAndFireDeepLinkForNotification:(NSDictionary *)notification {
     NSString *dl = (NSString *) notification[@"wzrk_dl"];
-    NSURL *dlURL = [NSURL URLWithString:dl];
-    NSDictionary *info = @{@"url": dlURL};
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"CapacitorOpenUniversalLinkNotification" object:info userInfo:nil];
+    if (dl) {
+        NSURL *dlURL = [NSURL URLWithString:dl];
+        NSDictionary *info = @{@"url": dlURL};
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"CapacitorOpenUniversalLinkNotification" object:info userInfo:nil];
+    }
 }
 
 - (void)_pushDeepLink:(NSString *)uri withSourceApp:(NSString *)sourceApp andInstall:(BOOL)install {
